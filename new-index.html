@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Editor</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  height:100vh;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont;
+  background:#0d0d0f;
+  color:#eaeaea;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.app{
+  width:340px;
+  background:#111114;
+  padding:28px;
+  border-radius:22px;
+  box-shadow:0 30px 80px rgba(0,0,0,0.6);
+  text-align:center;
+}
+
+h1{
+  font-size:18px;
+  margin-bottom:6px;
+  font-weight:600;
+  letter-spacing:.4px;
+}
+
+.sub{
+  font-size:12px;
+  color:#8b8b92;
+  margin-bottom:18px;
+}
+
+input{
+  margin-top:8px;
+  margin-bottom:14px;
+  color:#aaa;
+}
+
+.status{
+  font-size:12px;
+  color:#7c7c84;
+  height:18px;
+  margin-bottom:10px;
+}
+
+.previewWrap{
+  background:#0a0a0c;
+  border-radius:16px;
+  padding:10px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.04);
+}
+
+img{
+  width:100%;
+  border-radius:12px;
+  display:none;
+  cursor:pointer;
+  transition:all .4s ease;
+}
+
+button{
+  margin-top:16px;
+  width:100%;
+  padding:11px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(180deg,#2a2a30,#1a1a1f);
+  color:white;
+  font-size:14px;
+  letter-spacing:.3px;
+  cursor:pointer;
+  display:none;
+}
+
+button:hover{
+  opacity:.9;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+  <h1>Editor</h1>
+  <div class="sub">private enhancement tool</div>
+
+  <input type="file" id="upload" accept="image/*">
+
+  <div class="status" id="status"></div>
+
+  <div class="previewWrap">
+    <img id="photo">
+  </div>
+
+  <button id="download">Export</button>
+</div>
+
+<script>
+const upload = document.getElementById("upload");
+const photo = document.getElementById("photo");
+const statusTxt = document.getElementById("status");
+const downloadBtn = document.getElementById("download");
+
+let originalURL="";
+let enhanced=true;
+
+upload.addEventListener("change", ()=>{
+  const file = upload.files[0];
+  if(!file) return;
+
+  originalURL = URL.createObjectURL(file);
+  photo.src = originalURL;
+  photo.style.display="block";
+  downloadBtn.style.display="none";
+
+  statusTxt.textContent="enhancing…";
+
+  setTimeout(()=>{
+    photo.style.filter = `
+      contrast(1.12)
+      brightness(1.04)
+      saturate(1.08)
+      drop-shadow(0 20px 40px rgba(0,0,0,.55))
+    `;
+    statusTxt.textContent="tap image to compare";
+    downloadBtn.style.display="block";
+  },900);
+});
+
+photo.addEventListener("click", ()=>{
+  enhanced=!enhanced;
+  photo.style.filter = enhanced ? `
+    contrast(1.12)
+    brightness(1.04)
+    saturate(1.08)
+    drop-shadow(0 20px 40px rgba(0,0,0,.55))
+  ` : "none";
+});
+
+downloadBtn.addEventListener("click", ()=>{
+  const canvas=document.createElement("canvas");
+  const ctx=canvas.getContext("2d");
+  const img=new Image();
+
+  img.onload=()=>{
+    canvas.width=img.width;
+    canvas.height=img.height;
+    ctx.filter = photo.style.filter || "none";
+    ctx.drawImage(img,0,0);
+
+    const link=document.createElement("a");
+    link.download="enhanced.png";
+    link.href=canvas.toDataURL();
+    link.click();
+  };
+
+  img.src=originalURL;
+});
+</script>
+
+</body>
+</html>
